@@ -1,0 +1,1119 @@
+Problem Statement 1 (Triggers)
+Employee(emp_id, emp_name, salary, designation)
+Salary_Backup(emp_id, old_salary, new_salary, salary_difference)
+Create a Trigger to record salary change of the employee. Whenever salary is updated insert the details in
+Salary_Backup table.
+Create a Trigger that will prevent deleting the employee record having designation as CEO.
+
+set SERVEROUTPUT on
+create trigger trig
+after update or delete on employee
+for each row
+begin
+if new.salary != old.salary then
+   insert into salary_backup (emp_id,old_salary,new_salary,salary_difference)
+   values(old.emp_id,old.old_salary,old.new_salary,old.salary-new.salary);
+end if;
+end;
+
+
+create trigger trig1
+after delete on employee
+for each row
+begin
+ if old.destination="CEO" then
+   signal sqlstate '4500'
+ set MESSAGE TEXT 'Cannot delete an employee with the CEO designation.';
+ end if;
+end;
+   
+
+-------------------------------------------------------------------------------------------------------------------------------
+Problem statement 2
+Implement MYSQL database connectivity with PHP.
+
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Employee Management</title>
+ <link rel="stylesheet" 
+href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+
+<?php
+// Database configuration
+$dbHost = 'localhost';
+$dbUser = 'root';
+$dbPass = '';
+$dbName = 'pr8';
+
+// Create a database connection
+$conn = new mysqli($dbHost, $dbUser, $dbPass, $dbName);
+if ($conn->connect_error) {
+ die("Connection failed: " . $conn->connect_error);
+}
+if (isset($_POST['create'])) {
+ $name = $_POST['name'];
+ $salary = $_POST['salary'];
+ $manager = $_POST['manager'];
+ $sql = "INSERT INTO Employee (Employee_Name, Employee_Salary, 
+Employee_Manager) VALUES ('$name', '$salary', '$manager')";
+
+ if ($conn->query($sql) === TRUE) {
+ echo "Record created successfully";
+ } else {
+ echo "Error: " . $sql . "<br>" . $conn->error;
+ }
+}
+// READ Operation
+$result = $conn->query("SELECT * FROM Employee");
+if (isset($_POST['update'])) {
+ $id = $_POST['id'];
+ $newSalary = $_POST['new_salary'];
+ $sql = "UPDATE Employee SET Employee_Salary='$newSalary' WHERE 
+Employee_id='$id'";
+ if ($conn->query($sql) === TRUE) {
+ echo "Record updated successfully";
+ } else {
+ echo "Error updating record: " . $conn->error;
+ }
+}
+if (isset($_POST['delete'])) {
+ $id = $_POST['id'];
+ $sql = "DELETE FROM Employee WHERE Employee_id='$id'";
+ if ($conn->query($sql) === TRUE) {
+ echo "Record deleted successfully";
+
+ } else {
+ echo "Error deleting record: " . $conn->error;
+ }
+}
+?>
+<table class="table table-bordered table-striped">
+ <thead>
+ <tr>
+ <th>ID</th>
+ <th>Name</th>
+ <th>Salary</th>
+ <th>Manager</th>
+ </tr>
+ </thead>
+ <tbody>
+ <?php while ($row = $result->fetch_assoc()) 
+ { 
+ ?>
+ <tr>
+ <td><?php echo $row['Employee_id']; ?></td>
+ <td><?php echo $row['Employee_Name']; ?></td>
+ <td><?php echo $row['Employee_Salary']; ?></td>
+ <td><?php echo $row['Employee_Manager']; ?></td>
+ </tr>
+ <?php } ?>
+ </tbody>
+</table>
+<!-- HTML Form for CREATE -->
+
+<form method="post" class="form-inline">
+ <div class="form-group">
+ <input type="text" class="form-control" name="name" placeholder="Employee 
+Name">
+ </div>
+ <div class="form-group">
+ <input type="text" class="form-control" name="salary" placeholder="Salary">
+ </div>
+ <div class="form-group">
+ <input type="text" class="form-control" name="manager" placeholder="Manager 
+(Employee ID)">
+ </div>
+ <button type="submit" class="btn btn-primary" name="create">Create</button>
+</form>
+<br>
+<br>
+<!-- HTML Form for UPDATE -->
+<form method="post" class="form-inline">
+ <div class="form-group">
+ <input type="text" class="form-control" name="id" placeholder="Employee ID">
+ </div>
+ <div class="form-group">
+ <input type="text" class="form-control" name="new_salary" placeholder="New 
+Salary">
+ </div>
+ <button type="submit" class="btn btn-warning" name="update">Update</button>
+</form>
+<br>
+<br>
+<!-- HTML Form for DELETE -->
+<form method="post" class="form-inline">
+ <div class="form-group">
+ <input type="text" class="form-control" name="id" placeholder="Employee ID">
+ </div>
+ <button type="submit" class="btn btn-danger" name="delete">Delete</button>
+</form>
+<?php
+$conn->close();
+?>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+----------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 3 (Aggregation & Indexing)
+Create the Collection Movies_Data( Movie_ID, Movie_Name, Director, Genre, BoxOfficeCollection) and
+solve the following:
+
+1. Display a list stating how many Movies are directed by each “Director”.
+2. Display list of Movies with the highest BoxOfficeCollection in each Genre.
+3. Display list of Movies with the highest BoxOfficeCollection in each Genre in ascending order
+of BoxOfficeCollection.
+4. Create an index on field Movie_ID.
+5. Create an index on fields ” Movie_Name” and ” Director”.
+6. Drop an index on field Movie_ID.
+7. Drop an index on fields ” Movie_Name” and ” Director”.
+
+> db.createCollection("Movies_Data");
+{ "ok" : 1 }
+>db.Movies_Data.insert({"Movies_ID":111,"Movie_Name":"Heropanti","Director":"R.Dhava
+n","Genere":"Love story","Box_Office_Collection":90000000});
+WriteResult({ "nInserted" : 1 })
+> db.Movies_Data.insert({"Movies_ID":222,"Movie_Name":"Heropanti
+2","Director":"Remmo","Genere":"Spi story","Box_Office_Collection":85000000});
+WriteResult({ "nInserted" : 1 })
+> db.Movies_Data.insert({"Movies_ID":3,"Movie_Name":"Flying
+Jatt","Director":"Remmo","Genere":"Superhero story","Box_Office_Collection":60000000});
+WriteResult({ "nInserted" : 1 })
+>db.Movies_Data.insert({"Movies_ID":444,"Movie_Name":"Baaghi2","Director":"NiK","Gen
+ere":"Action","Box_Office_Collection":80000000});
+WriteResult({ "nInserted" : 1 })
+>db.Movies_Data.insert({"Movies_ID":555,"Movie_Name":"Baaghi","Director":"NiK","Gener
+e":"Love Story","Box_Office_Collection":70000000});
+WriteResult({ "nInserted" : 1 })
+> db.Movies_Data.find();
+{ "_id" : ObjectId("651e9bc69619ca2641b80328"), "Movies_ID" : 111, "Movie_Name" :
+"Heropanti", "Director" : "R.Dhavan", "Genere" : "Love story", "Box_Office_Collection" :
+90000000 }
+{ "_id" : ObjectId("651e9bf39619ca2641b80329"), "Movies_ID" : 222, "Movie_Name" :
+"Heropanti 2", "Director" : "Remmo", "Genere" : "Spi story", "Box_Office_Collection" :
+85000000 }
+{ "_id" : ObjectId("651e9c159619ca2641b8032a"), "Movies_ID" : 3, "Movie_Name" :
+"Flying Jatt", "Director" : "Remmo", "Genere" : "Superhero story", "Box_Office_Collection" :
+60000000 }
+{ "_id" : ObjectId("651e9c679619ca2641b8032b"), "Movies_ID" : 444, "Movie_Name" :
+"Baaghi2", "Director" : "NiK", "Genere" : "Action", "Box_Office_Collection" : 80000000 }
+{ "_id" : ObjectId("651e9c879619ca2641b8032c"), "Movies_ID" : 555, "Movie_Name" :
+"Baaghi", "Director" : "NiK", "Genere" : "Love Story", "Box_Office_Collection" : 70000000 }
+1. Display a list stating how many Movies are directed by each “Director”.
+> db.Movies_Data.aggregate([{$group:{_id:"$Director","No_Movies":{$sum:1}}}]);
+{ "_id" : "R.Dhavan", "No_Movies" : 1 }
+{ "_id" : "Remmo", "No_Movies" : 2 }
+{ "_id" : "NiK", "No_Movies" : 2 }
+2. Display list of Movies with the highest BoxOfficeCollection in each
+Genre.
+>
+db.Movies_Data.aggregate([{$group:{_id:"$Genere","Highest_BOC":{$max:"$Box_Office_
+Collection"}}}]);
+{ "_id" : "Love story", "Highest_BOC" : 90000000 }
+{ "_id" : "Spi story", "Highest_BOC" : 85000000 }
+{ "_id" : "Superhero story", "Highest_BOC" : 60000000 }
+{ "_id" : "Action", "Highest_BOC" : 80000000 }
+{ "_id" : "Love Story", "Highest_BOC" : 70000000 }
+3. Display list of Movies with the highest BoxOfficeCollection in each
+Genre in ascending order of BoxOfficeCollection.
+>
+db.Movies_Data.aggregate([{$group:{_id:"$Genere","Highest_BOC":{$max:"$Box_Office_
+Collection"}}},{$sort:{"Highest_BOC":1}}]);
+{ "_id" : "Superhero story", "Highest_BOC" : 60000000 }
+{ "_id" : "Love Story", "Highest_BOC" : 70000000 }
+{ "_id" : "Action", "Highest_BOC" : 80000000 }
+{ "_id" : "Spi story", "Highest_BOC" : 85000000 }
+{ "_id" : "Love story", "Highest_BOC" : 90000000 }
+4. Create an index on field Movie_ID.
+> db.Movies_Data.createIndex({"Movie_Id":1});
+{
+"numIndexesBefore" : 1,
+"numIndexesAfter" : 2,
+"createdCollectionAutomatically" : false,
+"ok" : 1
+}
+5. Create an index on fields ” Movie_Name” and ” Director”.
+> db.Movies_Data.createIndex({"Movie_Name":1,"Director":1});
+{
+"numIndexesBefore" : 2,
+"numIndexesAfter" : 3,
+"createdCollectionAutomatically" : false,
+"ok" : 1
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 4 (Procedures / Functions)
+Consider following schema for Bank database.
+Account(Account_No, Cust_Name, Balance, NoOfYears)
+Earned_Interest(Account_No, Interest_Amt)
+1. Write a PL/SQL procedure for following requirement. Take as input Account_No and Interest Rate from User.
+Calculate the Interest_Amt as simple interest for the given Account_No and store it in Earned_Interest table.
+Display all the details of Earned_Interest Table.
+2. Write a PLSQL function to display all records from Account table having Balance greater than 50,000.
+
+create or replace procedure proc(acc1 number , rate number)
+is
+begin
+declare
+bal number;
+t_year number(10);
+interest_amt number(10);
+
+begin
+ select balance into bal from account where account_no=acc1;
+ select noofyears into t_year from account where account_no=acc1;
+ 
+ interest_amt:=(bal*t_year*rate)/100;
+ insert into earned_interest values(acc1,interest_amt);
+end;
+end;
+
+
+CREATE OR REPLACE FUNCTION fun RETURN SYS_REFCURSOR IS
+  cur SYS_REFCURSOR;
+BEGIN
+  OPEN cur FOR
+    SELECT * FROM account WHERE balance > 50000;
+  RETURN cur;
+END;
+ 
+-------------------------------------------------------------------------------------------------------------------------------
+
+Problem Statement 5 (JOINS & SUBQUERIES USING MYSQL)
+Consider Following Schema
+Employee (Employee_id, First_name, Last_name , Hire_date, Salary, Job_title, Manager_id, department_id)
+Departments(Department_id, Department_name, Manager_id, Location_id)
+Locations(Location_id , Street_address , Postal_code, city, state, Country_id)
+Manager(Manager_id, Manager_name)
+Create the tables with referential integrity.Solve following queries using joins and subqueries.
+1. Write a query to find the names (first_name, last_name), the salary of the employees who earn more than
+the average salary and who works in any of the IT departments.
+2. Write a query to find the names (first_name, last_name), the salary of the employees who earn the same
+salary as the minimum salary for all departments.
+3. Write a query to display the employee ID, first name, last names, salary of all employees whose salary is
+above average for their departments.
+4. Write a query to display the department name, manager name, and city.
+5. Write a query to display the name (first_name, last_name), hire date, salary of all managers whose
+experience is more than 15 years.
+
+Write a query to find the names (first_name, last_name) and the salaries of the employees
+who have a higher salary than the employee whose last_name=''Singh”.
+mysql> Select First_Name,Last_Name From Employee1 WHERE Salary>(Select MAX(Salary) 
+FROM Employee1 WHERE Last_Name='Singh' );
++-------------+-----------+
+| First_Name | Last_Name |
++-------------+-----------+
+| Rohit | Sharma |
+| Bhuvneshwer | Kumar |
++-------------+-----------+
+5. Write a query to find the names (first_name, last_name) of the employees who have a
+manager and work for a department based in the United States.
+mysql> Select First_Name,Last_Name From Employee1 WHERE Department_ID IN (SELECT 
+Department_ID FROM Department WHERE Manager_ID IN (SELECT Manager_ID FROM 
+Manager));
++-------------+-----------+
+| First_Name | Last_Name |
++-------------+-----------+
+| Shikhar | Dhavan |
+| Shresh | Iyer |
+| Bhuvneshwer | Kumar |
+| Youvraj | Singh |
+| Rohit | Sharma |
+| Cheteshwer | Pujara |
+| Shubhman | Gil |
+| Virendra | Sehwag |
+| Harbhajan | Singh |
++-------------+-----------+
+6. Find the names of all employees who works in the IT department.
+mysql> Select First_Name,Last_Name From Employee1 WHERE Department_ID IN (SELECT 
+Department_ID FROM Department WHERE Department_Name='IT');
++-------------+-----------+
+| First_Name | Last_Name |
++-------------+-----------+
+| Rohit | Sharma |
+| Cheteshwer | Pujara |
+| Shubhman | Gil |
+| Virendra | Sehwag |
+| Harbhajan | Singh |
+| Shikhar | Dhavan |
+| Shresh | Iyer |
+| Bhuvneshwer | Kumar |
+| Youvraj | Singh |
++-------------+-----------+
+7. Write a query to find the names (first_name, last_name), the salary of the employees
+whose salary is greater than the average salary.
+mysql> Select First_Name,Last_Name From Employee1 WHERE Salary>(SELECT AVG(Salary) 
+FROM Employee1);
++-------------+-----------+
+| First_Name | Last_Name |
++-------------+-----------+
+| Rohit | Sharma |
+| Shikhar | Dhavan |
+| Virendra | Sehwag |
+| Bhuvneshwer | Kumar |
+| Harbhajan | Singh |
+| Youvraj | Singh |
++-------------+-----------+
+8. Write a query to find the names (first_name, last_name), the salary of the employees who
+earn more than the average salary and who works in any of the IT departments.
+9. Write a query to find the names (first_name, last_name), the salary of the employees who
+earn the same salary as the minimum salary for all departments.
+mysql> SELECT First_Name,Last_Name From Employee1 WHERE Salary=(SELECT 
+MIN(Salary) FROM Employee1 Where Department_ID IN (SELECT Department_ID
+FROM Department));
++------------+-----------+
+| First_Name | Last_Name |
++------------+-----------+
+| Shubhman | Gil |
++------------+-----------+
+10. Write a query to display the employee ID, first name, last names, salary of all employees
+whose salary is above average for their departments.
+Solve following queries using joins and schema given above.
+mysql> Select Employee_ID,First_Name,Last_Name,Salary From Employee1 WHERE Salary IN 
+(SELECT Salary FROM Employee1 WHERE Salary IN (SELECT AVG(Salary) FROM Employee1 
+GROUP BY Department_ID));
++-------------+------------+-----------+--------+
+| Employee_ID | First_Name | Last_Name | Salary |
++-------------+------------+-----------+--------+
+| 6 | Virendra | Sehwag | 38000 |
+| 8 | Harbhajan | Singh | 38000 |
++-------------+------------+-----------+--------+
+11. Write a query to find the employee id, name (last_name) along with their manager_id,
+manager name (last_name).
+mysql> SELECT 
+Employee1.Employee_ID,Employee1.Last_Name,Manager.Manager_ID,Manager.Manager_Name 
+FROM Employee1,Manager WHERE Manager.Manager_ID=Employee1.Manager_ID;
++-------------+-----------+------------+--------------+
+| Employee_ID | Last_Name | Manager_ID | Manager_Name |
++-------------+-----------+------------+--------------+
+| 1 | Sharma | 1010 | Sachin |
+| 3 | Pujara | 1010 | Sachin |
+| 5 | Iyer | 1010 | Sachin |
+| 2 | Dhavan | 1011 | Virat |
+| 4 | Gil | 1011 | Virat |
+| 6 | Sehwag | 1012 | Suresh |
+| 9 | Singh | 1012 | Suresh |
+| 7 | Kumar | 1013 | Ashwin |
+| 8 | Singh | 1013 | Ashwin |
+| 10 | Bumrah | 1013 | Ashwin |
++-------------+-----------+------------+--------------+
+12. Find the names and hire date of the employees who were hired after 'suresh'
+mysql> SELECT CONCAT(First_Name,'__',Last_Name),Joining_Date,Salary AS Employee_Name 
+FROM Employee1 WHERE Joining_Date>(SELECT Joining_Date FROM Employee1 WHERE 
+First_Name='Shresh');
++-----------------------------------+--------------+---------------+
+| CONCAT(First_Name,&apos;__&apos;,Last_Name) | Joining_Date | Employee_Name |
++-----------------------------------+--------------+---------------+
+| Shubhman__Gil | 2020-09-20 | 20000 |
+| Bhuvneshwer__Kumar | 2021-01-05 | 45000 |
++-----------------------------------+--------------+---------------+
+13. Write a query to get the department name and number of employees in the department.
+mysql> SELECT Department.Department_Name,COUNT(Employee1.Employee_ID) FROM 
+Employee1 INNER JOIN Department WHERE 
+Employee1.Department_ID=Department.Department_ID GROUP BY 
+Department.Department_Name;
++-----------------+------------------------------+
+| Department_Name | COUNT(Employee1.Employee_ID) |
++-----------------+------------------------------+
+| IT | 9 |
++-----------------+------------------------------+
+14. Write a query to display the department name, manager name, and city.
+mysql> SELECT First_Name,Last_Name,Joining_Date AS Higher_Date FROM Employee1 
+WHERE Joining_Date > (SELECT Joining_Date FROM Employee1 WHERE First_Name 
+='Shresh');
++-------------+-----------+-------------+
+| First_Name | Last_Name | Higher_Date |
++-------------+-----------+-------------+
+| Shubhman | Gil | 2020-09-20 |
+| Bhuvneshwer | Kumar | 2021-01-05 |
++-------------+-----------+-------------+
+15. Write a query to display the name (first_name, last_name), hire date, salary of the
+Employee for all managers whose experience is more than 15 years.
+SELECT CONCAT(First_Name,'__',Last_Name),Joining_Date,Salary AS Employee_Name FROM 
+Employee1 WHERE Department_ID IN (SELECT Department.Department_ID FROM 
+Department NATURAL JOIN Manager WHERE Department.Manager_ID=Manager.Manager_ID 
+AND TIMESTAMPDIFF(YEAR,Joining_Date , CURDATE()));
+-----------------------------------+--------------+---------------+
+| CONCAT(First_Name,&apos;__&apos;,Last_Name) | Joining_Date | Employee_Name |
++-----------------------------------+--------------+---------------+
+| Shikhar__Dhavan | 2020-02-11 | 40000 |
+| Shresh__Iyer | 2020-08-30 | 23000 |
+| Bhuvneshwer__Kumar | 2021-01-05 | 45000 |
+| Youvraj__Singh | 2020-02-20 | 44000 |
+| Rohit__Sharma | 2020-01-10 | 50000 |
+| Cheteshwer__Pujara | 2020-04-20 | 35000 |
+| Shubhman__Gil | 2020-09-20 | 20000 |
+| Virendra__Sehwag | 2020-03-11 | 38000 |
+| Harbhajan__Singh | 2020-02-23 | 38000 |
+| Jasprit__Bumrah | 2004-02-08 | 45000 |
++-----------------------------------+--------------+---------------+
+
+----------------------------------------------------------------------------------------------------------------------------
+Problem Statement 6
+Implement MongoDB database connectivity with Java.
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+ <modelVersion>4.0.0</modelVersion>
+  <groupId>mongojava1</groupId>
+  <artifactId>mongojava1</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <dependencies>
+	  
+  <dependency>
+	  <groupId>org.mongodb</groupId>
+	  <artifactId>mongo-java-driver</artifactId>
+	  <version>3.12.14</version>
+  </dependency>
+  </dependencies>
+</project>
+
+
+package mongojava1; // Package declaration, if you need it
+import com.mongodb.*;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.MongoClient;
+import java.util.Scanner;
+
+public class javamongo {
+	private static Scanner sc2;
+	public static void main( String args[] )
+	{
+		DBCollection coll=null;
+		try{
+			MongoClient mongoClient = new MongoClient( "localhost" , 27017 );
+			DB db = mongoClient.getDB("rushali");
+			coll = db.getCollection("Students");
+			System.out.println("Connected to database successfully");
+			sc2 = new Scanner(System.in);
+			int choice;
+			do {
+				System.out.println("Enter your choice of operation \n1. Display All \n2. Insert Document \n3. Delete Document \n4. Update \n5. Conditional Display \n6.Exit \n");
+				choice = sc2.nextInt();
+				switch (choice) {
+				case 1:displayAll(coll);
+				break;
+				case 2: insertDoc(coll);
+				break;
+				case 3: deleteDoc(coll);
+				break;
+				case 4: updateDoc(coll);
+				break;
+				case 5: conditionalDisplay(coll);
+				break;
+				case 6: System.out.println("Exiting Program...");
+				System.exit(0);
+				break;
+				default:
+					System.out.println(choice + " is not a valid Menu Option! Please Select Another.");
+				}
+			}
+			while(choice != 6);
+			}
+		catch(Exception ex){
+				ex.printStackTrace();
+			}
+		}
+		public static void insertDoc(DBCollection coll)
+		{
+			System.out.println("Inserting document");
+			BasicDBObject document = new BasicDBObject();
+			System.out.println("Enter Student rollno");
+			Scanner sc=new Scanner(System.in);
+			int sroll = sc.nextInt();
+			System.out.println("Enter Student Name");
+			String sname = sc.next();
+			System.out.println("Enter Student Class");
+			String sclass = sc.next();
+			System.out.println("Enter Student Marks");
+			int smarks = sc.nextInt();
+			System.out.println("Enter Student Technical Interest");
+			String sti = sc.next();
+			document.put("stu_rollno",sroll);
+			document.put("stu_name",sname);
+			document.put("class",sclass);
+			document.put("marks",smarks);
+			document.put("technical_interest",sti);
+			coll.insert(document);
+			System.out.println("Document inserted successfully");
+		}
+		public static void deleteDoc(DBCollection coll)
+		{
+			System.out.println("Deleting document");
+			BasicDBObject document = new BasicDBObject();
+			System.out.println("Enter Student rollno");
+			Scanner sc=new Scanner(System.in);
+			int sroll = sc.nextInt();
+			document.put("stu_rollno",sroll);
+			coll.remove(document);
+			System.out.println("Document deleted successfully");
+		}
+		public static void updateDoc(DBCollection coll)
+		{
+			System.out.println("Updating document");
+			System.out.println("Enter Student rollno");
+			Scanner sc1=new Scanner(System.in);
+			int sroll = sc1.nextInt();
+			BasicDBObject searchQuery = new	BasicDBObject().append("stu_rollno", sroll);
+			BasicDBObject newDocument = new BasicDBObject();
+			System.out.println("Enter New marks");
+			Scanner sc=new Scanner(System.in);
+			int smarks = sc.nextInt();
+			newDocument.append("$set", new BasicDBObject().append("marks",smarks));
+			coll.update(searchQuery,newDocument);
+			System.out.println("Document updated successfully");
+		}
+		public static void displayAll(DBCollection coll)
+		{
+			System.out.println("Displaying all documents in collection");
+			DBCursor cursor = coll.find();
+			while(cursor.hasNext()) 
+			{
+				System.out.println(cursor.next());
+			}
+		}
+		public static void conditionalDisplay(DBCollection coll)
+		{
+			System.out.println("Enter Min marks");
+			Scanner sc=new Scanner(System.in);
+			int smarks=sc.nextInt();
+			DBCursor cursor = coll.find();
+			while(cursor.hasNext()) 
+			{
+			int marks=(int) cursor.next().get("marks");
+			if(marks > smarks )
+			{
+				System.out.println(cursor.curr());
+			}
+			else
+				System.out.println("low marks");
+			}
+			}
+		}
+-----------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 7 (Cursors)
+Consider the following schema for Products table.
+Products(Product_id, Product_Name, Product_Type, Price)
+1. Write a parameterized cursor to display all products in the given price range of price and type ‘Apparel’.
+Hint: Take the user input for minimum and maximum price for price range.
+2. Write an explicit cursor to display information of all products with Price greater than 5000.
+3. Write an implicit cursor to display the number of records affected by the update operation incrementing Price
+of all products by 1000.
+
+select * from product;
+
+declare cursor param_cursor (min number, max number,type varchar) is select * from product
+where
+price between min and max
+and product_type=type;
+mn number;
+mx number;
+t varchar(20);
+
+begin
+for tmp in param_cursor(&mn,&mx,'&t')
+loop
+dbms_output.put_line('id:'||tmp.product_id);
+dbms_output.put_line('type:'||tmp.product_type);
+end loop;
+end;
+
+
+
+DECLARE  
+   product_id number(2); 
+   product_name varchar(20);
+   CURSOR c_product is 
+      SELECT product_id, product_name FROM product; 
+BEGIN 
+   UPDATE product
+   SET price = price + 500; 
+   IF sql%notfound THEN 
+      dbms_output.put_line('no  selected'); 
+   ELSIF sql%found THEN 
+      product_id := sql%rowcount;
+      dbms_output.put_line( product_id || ' product selected '); 
+   END IF;  
+END; 
+
+DECLARE
+  CURSOR HighPriceCursor IS
+    SELECT product_id, product_nam, product_type, price
+    FROM product
+    WHERE price > 5000;
+
+BEGIN
+  -- Open the cursor and fetch the results
+  FOR product_record IN HighPriceCursor LOOP
+    DBMS_OUTPUT.PUT_LINE('Product ID: ' || product_record.product_id || 
+                        ', Name: ' || product_record.product_nam || 
+                        ', Type: ' || product_record.product_type || 
+                        ', Price: ' || product_record.price);
+  END LOOP;
+END;
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+Problem Statement 8 (DML USING MYSQL)
+Create following tables using a given schema and insert appropriate data into the same:
+Customer (CustID, Name, Cust_Address, Phone_no, Email_ID, Age)
+Branch (Branch ID, Branch_Name, Address)
+Account (Account_no, Branch ID, CustID, date_open, Account_type, Balance)
+1. Modify the size of column “Email_Address” to 20 in Customer table.
+2. Change the column “Email_Address” to Not Null in Customer table.
+3. Display the total customers with the balance >50, 000 Rs.
+4. Display average balance for account type=”Saving Account”.
+5. Display the customer details that lives in Pune or name starts with ’A’.
+6. Create a table Saving_Account with (Account_no, Branch ID, CustID, date_open, Balance) using
+Account Table.
+7. Display the customer details Age wise with balance>=20,000Rs
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 9 (Map Reduce)
+Create collection for Student{roll_no, name, class, dept, aggregate_marks}. Write Map Reduce Functions for
+following requirements.
+
+1. Finding the total marks of students of “TE” class department-wise.
+2. Finding the highest marks of students of “SE” class department-wise.
+3. Find Average marks of students of “BE” class department-wise.
+
+1.
+var mapFunction = function() {
+  if (this.class === "TE") {
+    emit(this.dept, this.aggregate_marks);
+  }
+};
+
+var reduceFunction = function(key, values) {
+  return Array.sum(values);
+};
+
+db.students.mapReduce(
+  mapFunction,
+  reduceFunction,
+  { out: "TE_TotalMarks" }
+);
+
+2.
+var mapFunction = function() {
+  if (this.class === "SE") {
+    emit(this.dept, this.aggregate_marks);
+  }
+};
+
+var reduceFunction = function(key, values) {
+  return Math.max.apply(null, values);
+};
+
+db.students.mapReduce(
+  mapFunction,
+  reduceFunction,
+  { out: "SE_HighestMarks" }
+);
+
+3.
+var mapFunction = function() {
+  if (this.class === "BE") {
+    emit(this.dept, { sum: this.aggregate_marks, count: 1 });
+  }
+};
+
+var reduceFunction = function(key, values) {
+  var reducedVal = { sum: 0, count: 0 };
+  values.forEach(function(value) {
+    reducedVal.sum += value.sum;
+    reducedVal.count += value.count;
+  });
+  return reducedVal;
+};
+
+var finalizeFunction = function(key, reducedVal) {
+  reducedVal.avg = reducedVal.sum / reducedVal.count;
+  return reducedVal;
+};
+
+db.students.mapReduce(
+  mapFunction,
+  reduceFunction,
+  {
+    out: "BE_AverageMarks",
+    finalize: finalizeFunction
+  }
+);
+-----------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 10 (Triggers)
+Employee( emp_id, dept_idemp_name, DoJ, salary, commission,job_title)
+Consider the schema given above for Write a PLSQL Program to
+1. Create a Trigger to ensure the salary of the employee is not decreased.
+2. Whenever the job title is changed for an employee write the following details into job_history table. Employee
+ID, old job title, old department ID, DoJ for start date, system date for end date.
+
+create or replace trigger trig
+after update on employee1
+for each row
+begin
+  if :new.salary < old.salary then
+     raise_application_error(-20001,"salary cannot be decresed");
+  end if;
+end;
+
+
+create or replace trigger trig
+after update on employee1
+for each row
+begin
+if :new.salary != old.salary then
+  insert into salarynew values(:old.emp_id,:old.dept_id,:old.emp_name,:old.salary,:old.doj,sysdate);
+end if;
+end;
+-------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 11 (DDL USING MYSQL)
+Create following tables using a given schema and insert appropriate data into the same:
+Customer (CustID, Name, Cust_Address, Phone_no, Email_ID, Age)
+Branch (Branch ID, Branch_Name, Address)
+Account (Account_no, Branch ID, CustID, date_open, Account_type, Balance)
+1. Create the tables with referential integrity.
+2. Draw the ER diagram for the same.
+3. Create an Index on primary key column of table Account
+4. Create the view as Customer_Info displaying the customer details for age less than 45.
+5. Update the View with open date as 16/4/2017
+6. Create a sequence on Branch able.
+7. Create synonym ‘Branch_info’ for branch table.
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 12 (CRUD Using MongoDB)
+Create a collection Social_Media having fields as User_Id, User_Name, No_of_Posts, No_of_Friends,
+Friends_List, Interests. (Hint: Friends_List and Interests can be of array type)
+Insert 20 documents in the collection Social_Media. Write queries for following.
+1. List all the users from collection Social_Media in formatted manner.
+2. Find all users having number of posts greater than 100.
+3. List the user names and their respective Friens_List
+4. Display the user ids and Friends list of users who have more than 5 friends.
+5. Display all users with no of posts in descending order.
+
+2. Find all users having number of posts greater than 100.
+db.Social_Media.find({ No_of_Posts: { $gt: 100 } })
+
+3. List the user names and their respetive Friends_List
+db.Social_Media.find({}, { User_Name: 1, Friends_List: 1, _id: 0 })
+
+4. Display the user ids and Friends list of users who have more than 5
+friends.
+db.Social_Media.find({ No_of_Friends: { $gt: 5 } }, { User_Id: 1, Friends_List: 1 })
+
+5. Display all users with no of posts in descending order.
+db.Social_Media.find({}, { User_Name: 1, No_of_Posts: 1, _id: 0 }).sort({ No_of_Posts: -1 
+})
+
+
+------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 13 (Cursors)
+Consider a table Employee with schema as Employee (Emp_id, Emp_Name,Salary).
+1. Write an explicit cursor to display records of all employees with salary greater than 50,000.
+2. Write a PL/SQL block of code using Implicit Cursor that will display total number of tuples in Employee
+table.
+3. Write a PL/SQL block of code using Parameterized Cursor that will display salary of employee id entered by
+the user.
+
+declare
+cursor emp_cursor is
+select * from employee where salary>50000;
+begin
+open emp_cursor;
+for emp_rec in emp_cursor LOOP
+  dbms_output.put_line('Employee ID: ' || emp_rec.emp_id || ', Name: ' || emp_rec.emp_Name || ', Salary: ' || emp_rec.salary);
+  END LOOP;
+
+  -- Close the cursor
+  CLOSE emp_cursor;
+END;
+
+declare
+emp_count number;
+begin
+select count(*) into emp_count from employee;
+dbms_output.put_line('Total number of tuples are: '||emp_count);
+end;
+
+declare
+emp_id_param number;
+emp_salary number;
+cursor emp_cursor is
+   select salary from employee where emp_id=emp_id_param;
+begin
+emp_id_param := &employee_id;
+open emp_cursor ;
+fetch emp_cursor into emp_salary;
+close emp_cursor;
+ dbms_output.put_line('Salary of Employee ID ' || emp_id_param || ': ' || emp_salary);
+end;
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 14 (JOINS & SUBQUERIES USING MYSQL)
+Consider Following Schema
+Employee (Employee_id, First_name, last_name , hire_date, salary, Job_title, manager_id, department_id)
+Departments(Department_id, Department_name, Manager_id, Location_id)
+Locations(location_id ,street_address ,postal_code, city, state, country_id)
+Manager(Manager_id, Manager_name)
+Create the tables with referential integrity. Solve following queries using joins and subqueries.
+1. Write a query to find the names (first_name, last_name) and the salaries of the employees who have a
+higher salary than the employee whose last_name=''Singh”.
+2. Write a query to find the names (first_name, last_name) of the employees who have a manager and
+work for a department based in the United States.
+2. Write a query to find the names (first_name, last_name), the salary of the employees whose salary is
+greater than the average salary.
+3. Write a query to find the employee id, name (last_name) along with their manager_id, manager name
+(last_name).
+4. Find the names and hire date of the employees who were hired after 'Jones'.
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+
+Problem Statement 15 (Map Reduce using MongoDB)
+Create Book Collection with (Title, Author_name, Borrowed_status) as fields. Write Map Reduce Functions for
+following requirements.
+
+1. Display Author wise list of books.
+2. Display Author wise list of books having Borrowed status as “True”.
+3. Display Author wise list of books having price greater than 300.
+
+I. Display Author wise list of books.
+test> db.book.mapReduce(function(){emit(this.author, this.title);},function(key, values){return
+Array(values)},{out:"Q2O1"})
+{ result: 'Q2O1', ok: 1 }
+test> db.Q2O1.find();
+[
+{ _id: 'Kiran', value: [ [ 'MP', 'GoGoJOJO', 'KGF' ] ] },
+{ _id: 'James', value: [ [ 'DSAL', 'StopLookGo', 'TOC' ] ] },
+{
+_id: 'John',
+value: [ [ 'Ddeprecated', 'DSA', 'DataBig', 'DBMS' ] ]
+}
+]
+II. Display Author wise list of books having Borrowed status”True”.
+test> db.book.mapReduce(function(){emit(this.author, this.title);},function(key, values){return
+Array(values)},{query:{borrowed:true},out:"Q2O1"})
+{ result: 'Q2O1', ok: 1 }
+test> db.Q2O1.find();
+
+------------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 16 (Procedures / Functions)
+Employee( emp_id, dept_idemp_name, DoJ, salary, commission,job_title)
+1. Consider the schema given above. Keep the commission column empty initially. Write a Stored Procedure to
+record the employee commission based on following conditions. If salary is more than 10000 then commission
+is 0.4%, if Salary is less than 10000 but experience is more than 10 years then 0.35%, if salary is less than 3000
+then commission is 0.25%. In the remaining cases commission is 0.15%.
+2. Write a PLSQL Function that takes department ID and returns the name of the manager of the department.
+
+create or replace procedure proc1(employee_id in number)
+ is
+ v_salary number;
+ v_yearOFExperience number;
+ v_rate number;
+ begin
+ select salary into v_salary from employee1 where emp_id=employee_id;
+ select EXTRACT(year from(sysdate-doj)) into v_yearOFExperience from employee1 where emp_id=employee_id;
+ 
+ if v_salary > 1000 then
+   v_rate :=0.004;
+ elsif v_salary<10000 and v_rate>10 then
+   v_rate:=0.0035;
+ ELSIF v_salary < 3000 THEN
+    v_rate := 0.0025;
+ ELSE
+    v_rate := 0.0015;
+ END IF;
+ update employee set commission = v_rate WHERE emp_id = employee_id;
+  COMMIT;
+END proc1;
+
+
+CREATE OR REPLACE FUNCTION fun1 (dept_id1 NUMBER) RETURN VARCHAR IS
+  manager_name VARCHAR(100);
+BEGIN
+  SELECT emp_name INTO manager_name
+  FROM employee1
+  WHERE dept_id = dept_id1 AND job_title = 'Manager';
+
+  RETURN manager_name;
+END fun1;
+------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 17 (DML USING MYSQL)
+Create following tables using a given schema and insert appropriate data into the same:
+Customer (CustID, Name, Cust_Address, Phone_no, Age)
+Branch (Branch ID, Branch_Name, Address)
+Account (Account_no, Branch ID, CustID, date_open, Account_type, Balance)
+1. Add the column “Email_Address” in Customer table.
+2. Change the name of column “Email_Address” to “Email_ID” in Customer table.
+3. Display the customer details with highest balance in the account.
+4. Display the customer details with lowest balance for account type= “Saving Account”.
+5. Display the customer details that live in Pune and have age greater than 35.
+6. Display the Cust_ID, Name and Age of the customer in ascending order of their age.
+7. Display the Name and Branch ID of the customer group by the Account_type.
+
+------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 18 (AGGREGATION & INDEXING USING MONGODB)
+Create the Collection Student_Data( Student _ID, Student _Name, Department, Marks )and solve the
+following:
+
+1. Display all Students based on their departments along with an average Marks of a particular
+department.
+2. Displays the number of Students associated along with a particular department.
+3. Display list of Students with the highest Marks in each Department in descending order
+of Marks.
+4. Create an index on field Student_ID.
+5. Create an index on fields “Student_Name‘ and “Department”.
+6. Drop an index on field Student_ID.
+7. Drop an index on fields “Student_Name‘ and “Department”.
+
+1. Display all Students based on their departments along with an average
+Marks of a particular department.
+>
+db.Student_Data.aggregate([{$group:{_id:"$Department","AVG_Marks":{$avg:"$Marks"}}}])
+;
+{ "_id" : "Computer", "AVG_Marks" : 91.33333333333333 }
+{ "_id" : "IT", "AVG_Marks" : 98 }
+{ "_id" : "Mechanical", "AVG_Marks" : 75 }
+{ "_id" : "Electrical", "AVG_Marks" : 82.5 }
+2. Displays the number of Students associated along with a particular
+department.
+> db.Student_Data.aggregate([{$group:{_id:"$Department","No_Students":{$sum:1}}}]);
+{ "_id" : "Computer", "No_Students" : 3 }
+{ "_id" : "IT", "No_Students" : 1 }
+{ "_id" : "Mechanical", "No_Students" : 1 }
+{ "_id" : "Electrical", "No_Students" : 2 }
+3. Display list of Students with the highest Marks in each Department in
+descending order of Marks.
+>
+db.Student_Data.aggregate([{$group:{_id:"$Department","Highest_Marks":{$max:"$Marks"
+}}},{$sort:{"Highest_Marks":-1}}]);
+{ "_id" : "Computer", "Highest_Marks" : 99 }
+{ "_id" : "IT", "Highest_Marks" : 98 }
+{ "_id" : "Electrical", "Highest_Marks" : 85 }
+{ "_id" : "Mechanical", "Highest_Marks" : 75 }
+4. Create an index on field Student_ID.
+> db.Student_Data.createIndex({"Student_Id":1});
+{
+"numIndexesBefore" : 1,
+"numIndexesAfter" : 2,
+"createdCollectionAutomatically" : false,
+"ok" : 1
+}
+5. Create an index on fields “Student_Name‘ and “Department”.
+> db.Student_Data.createIndex({"Student_Name":1,"Department":1});
+{
+"numIndexesBefore" : 2,
+"numIndexesAfter" : 3,
+"createdCollectionAutomatically" : false,
+"ok" : 1
+}
+6. Drop an index on fields “Student_Name‘ and “Department”.
+> db.Student_Data.dropIndex({"Student_Name":1,"Department":1});
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+Problem Statement 19 (Unnamed Block)
+Employee( emp_id, dept_idemp_name, DoJ, salary, commission,job_title)
+Salary_Increment(emp_id, new_salary)
+Consider the schema given above. Write a PLSQL Unnamed Block of code to increase the salary of employee
+115 based on the following conditions:
+Accept emp_id from user. If experience of employee is more than 10 years, increase salary by 20%. If experience
+is greater than 5 years, increase salary by 10% Otherwise 5%. (Hint: Find the years of experience from Date of
+Joining (DoJ)). Store the incremented salary in Salary_Increment table.
+Also handle the exception by named exception handler or user defined exception handler.
+
+DECLARE
+  emp_id1 NUMBER;
+  experience NUMBER;
+  v_salary NUMBER;
+BEGIN
+  emp_id1 := &Employee_ID;
+
+  SELECT EXTRACT(YEAR FROM (SYSDATE - DoJ))
+  INTO experience
+  FROM employee1
+  WHERE emp_id = emp_id1;
+  IF experience > 10 THEN
+    v_salary := 0.20;  
+  ELSIF experience > 5 THEN
+    v_salary := 0.10;  
+  ELSE
+    v_salary := 0.05;  
+  END IF;
+
+  UPDATE employee1
+  SET salary = salary + (salary * v_salary)
+  WHERE emp_id = emp_id1;
+
+  INSERT INTO salary_increment (emp_id, new_salary, increment_date)
+  VALUES (emp_id1, salary, SYSDATE);
+
+  COMMIT;
+  DBMS_OUTPUT.PUT_LINE('Salary has been incremented successfully.');
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    DBMS_OUTPUT.PUT_LINE('Employee not found.');
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 20 (DDL USING MYSQL)
+Create following tables using a given schema and insert appropriate data into the same:
+Customer (CustID, Name, Cust_Address, Phone_no, Email_ID, Age)
+Branch (Branch ID, Branch_Name, Address)
+Account (Account_no, Branch ID, CustID, open_date, Account_type, Balance)
+1. Create the tables with referential integrity.
+2. Draw the ER diagram for the same.
+3. Create a View as Saving account displaying the customer details with the open date as 16/8/2018.
+4. Update the View with Cust_Address as Pune for CustID =103.
+5. Create a View as Loan account displaying the customer details with the open date as 16/2/2018.
+6. Create an Index on primary key column of table Customer.
+7. Create an Index on primary key column of table Branch.
+8. Create a sequence on Customer Table.
+9. Create synonym ‘Cust_info’ for branch table.
+-------------------------------------------------------------------------------------------------------------------------------------------
+Problem Statement 21 (CRUD)
+Create collection Student with fields as Roll_No, Name, Class, Marks, Address, Enrolled_Courses.
+(Hint: One student can enrol in multiple courses. Use Array to store the names of courses enrolled)
+Insert 10 documents in the collection Student. Write the queries for following.
+1. List the names of students who have enrolled in the course “DBMS”, “TOC”.
+2. List the Roll numbers and class of students who have marks more than 50 or class as TE.
+3. Update the entire record of roll_no A10.
+4. Display the names of students having 3rd and 4th highest marks.
+5. Delete the records of students having marks less than 20.
+
+1. List the names of students who have enrolled in the course “DBMS”,
+“TOC”.
+TB70
+db.Student.find({ Enrolled_Courses: { $in: ["DBMS", "TOC"] } }, { Name: 1, _id: 0 })
+
+2. List the Roll numbers and class of students who have marks more than
+50 or class as TE.
+db.Student.find({ $or: [{ Marks: { $gt: 50 } }, { Class: "TE" }] }, { Roll_No: 1, Class: 1, _id: 0 })
+
+3. Update the entire record of roll_no A10.
+db.Student.updateOne({ Roll_No: "A10" }, { $set: { Class: "BE" } })
+
+4. Display the names of students having 3rd and 4th highest marks.
+db.Student.find({},{Name:1,_id:0}).sort({Marks:-1}).skip(2).limit(2);
+[ { Name: 'John' }, { Name: 'Emma' } ]
+
+5. Delete the records of students having marks less than 20.
+db.Student.deleteMany({ Marks: { $lt: 20 } })
+
+6. Delete only first record from the collection
+db.Student.deleteOne({})
+{ acknowledged: true, deletedCount: 1 }
